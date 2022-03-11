@@ -15,43 +15,79 @@ var main = function (input) {
   // create and shuffle a deck
   shuffledCardDeck = shuffleCards(makeDeck());
 
-  //deal 2 cards to human and computer
-  dealCard(humanHand);
-  dealCard(computerHand);
-  dealCard(humanHand);
-  dealCard(computerHand);
+  //deal 2 cards to human and computer at the start of the game
+  if (humanHand.length == 0) {
+    dealCard(humanHand);
+    dealCard(computerHand);
+    dealCard(humanHand);
+    dealCard(computerHand);
 
-  //count the current hand of human and computer
-  var humanHandCount = countCurrentHand(humanHand);
-  var computerHandCount = countCurrentHand(computerHand);
+    //count the current hand of human and computer
+    var humanHandCount = countCurrentHand(humanHand);
+    var computerHandCount = countCurrentHand(computerHand);
 
-  console.log(humanHand);
-  console.log(humanHandCount);
-  console.log(computerHand);
-  console.log(computerHandCount);
+    console.log(humanHand);
+    console.log(humanHandCount);
+    console.log(computerHand);
+    console.log(computerHandCount);
 
-  // check if human or computer hand has blackjack
-  if (humanHand.length == 2 && computerHand.length == 2) {
-    // computer draws blackjack and wins
-    if (computerHandCount == 21 && humanHandCount != 21) {
-      var returnMessage = computerWinsBlackjack();
-      return returnMessage;
+    // check if human or computer hand has blackjack
+    if (humanHand.length == 2 && computerHand.length == 2) {
+      // computer draws blackjack and wins
+      if (computerHandCount == 21 && humanHandCount != 21) {
+        var returnMessage = computerWinsBlackjack();
+        return returnMessage;
+      }
+      // human draws blackjack and wins
+      if (computerHandCount != 21 && humanHandCount == 21) {
+        var returnMessage = humanWinsBlackjack();
+        return returnMessage;
+      }
     }
-    // human draws blackjack and wins
-    if (computerHandCount != 21 && humanHandCount == 21) {
-      var returnMessage = humanWinsBlackjack();
-      return returnMessage;
+
+    // if human and computer hand has no blackjack wins, show cards that player has drawn
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Please enter "hit" if you would like to draw another card or "stand" to end your turn.`;
+  }
+
+  // check for valid input
+  if (input != "hit" && input != "stand") {
+    return `Your input is invalid. Please enter "hit" if you would like to draw another card or "stand" to end your turn.`;
+  }
+
+  // player chooses to draw another card
+  if (input == "hit") {
+    dealCard(humanHand);
+    humanHandCount = countCurrentHand(humanHand);
+    console.log(humanHand);
+    console.log(humanHandCount);
+    if (countCurrentHand(humanHand) > 21) {
+      return `You have drawn the following cards:${currentHand(
+        humanHand
+      )}<br><br>
+  Your total score is > 21, you lose. <br><br>
+  Please refresh to play again.`;
+    } else {
+      // player did not exceed 21
+      if (countCurrentHand(computerHand) < 17) {
+        dealCard(computerHand);
+        computerHandCount = countCurrentHand(computerHand);
+        console.log(computerHand);
+        console.log(computerHandCount);
+      }
     }
   }
 
-  // if human and computer hand has no blackjack wins, show cards that player has drawn
-
-  return `You have drawn ${currentHand(humanHand)}.`;
-
-  // check for non-blackjack wins
-  // checkNormalWin(humanHandCount, computerHandCount);
-
-  // if human and computer has no blackjack, display human hand for human to decide whether to hit or stand
+  // player chooses to end game, check for non-blackjack wins
+  if (input == "stand") {
+    // if dealer has less than 17, dealer will need to draw card
+    if (computerHandCount < 17) {
+      dealCard(computerHand);
+      console.log(computerHand);
+      console.log(computerHandCount);
+    }
+  }
+  checkNormalWin(humanHandCount, computerHandCount);
 };
 
 // function to create a deck
@@ -66,18 +102,18 @@ var makeDeck = function () {
       var cardName = rankCounter;
       var convertPicCardRank = rankCounter;
       if (rankCounter == 1) {
-        cardName = "ace";
+        cardName = "Ace";
       }
       if (rankCounter == 11) {
-        cardName = "jack";
+        cardName = "Jack";
         convertPicCardRank = 10;
       }
       if (rankCounter == 12) {
-        cardName = "queen";
+        cardName = "Queen";
         convertPicCardRank = 10;
       }
       if (rankCounter == 13) {
-        cardName = "king";
+        cardName = "King";
         convertPicCardRank = 10;
       }
 
@@ -125,7 +161,12 @@ var countCurrentHand = function (playerHand) {
   var counter = 0;
   while (counter < playerHand.length) {
     var currCard = playerHand[counter];
-    sum += currCard.rank;
+    // let ace default value be 11
+    if (currCard.name == "Ace") {
+      sum += 11;
+    } else {
+      sum += currCard.rank;
+    }
     counter = counter + 1;
   }
   return sum;
@@ -133,12 +174,18 @@ var countCurrentHand = function (playerHand) {
 
 // function to return human blackjack win
 var humanWinsBlackjack = function () {
-  return `Player has Blackjack and wins, Computer loses!`;
+  return `Player has Blackjack and wins, Computer loses!<br><br> 
+  You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
+  Please refresh to play again.`;
 };
 
 // function to return computer win blackjack
 var computerWinsBlackjack = function () {
-  return `Computer has Blackjack and wins, Computer loses!`;
+  return `Computer has Blackjack and wins, Player loses!<br><br>
+  You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
+  Please refresh to play again.`;
 };
 
 // function to check for non-blackjack wins
@@ -147,12 +194,13 @@ var checkNormalWin = function (player, computer) {
   if (player < 21 && computer < 21) {
     if (player > computer) {
       return `Player is closer to 21 and wins, Computer loses!`;
-    } else return `Computer is closer to 21 and wins, Player loses!`;
-  } else if (player > 21 && computer > 21) {
-    return `Computer and Player both exceeded 21, no one wins!`;
-  } else if (player > 21 && computer < 21) {
-    return `Player exceeded 21, Computer wins!`;
-  } else return `Computer exceeded 21, Player wins!`;
+    } else {
+      return `Computer is closer to 21 and wins, Player loses!`;
+    }
+  }
+  if (player == 21 && computer != 21) {
+    return `Player gets 21 and wins!`;
+  }
 };
 
 // function to show current hand to user
@@ -161,8 +209,8 @@ var currentHand = function (playerHand) {
   var handIndex = 0;
 
   while (handIndex < playerHand.length) {
-    cards = cards + playerHand[handIndex].name;
-    handIndex + 1;
+    cards = cards + "<br>" + playerHand[handIndex].name;
+    handIndex = handIndex + 1;
   }
   return cards;
 };
