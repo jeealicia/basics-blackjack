@@ -81,13 +81,19 @@ var main = function (input) {
   // player chooses to end game, check for non-blackjack wins
   if (input == "stand") {
     // if dealer has less than 17, dealer will need to draw card
-    if (computerHandCount < 17) {
+    if (countCurrentHand(computerHand) < 17) {
       dealCard(computerHand);
+      computerHandCount = countCurrentHand(computerHand);
       console.log(computerHand);
       console.log(computerHandCount);
     }
   }
-  checkNormalWin(humanHandCount, computerHandCount);
+  computerHandCount = countCurrentHand(computerHand);
+  console.log(computerHandCount);
+  humanHandCount = countCurrentHand(humanHand);
+  console.log(humanHandCount);
+  var loseWinMsg = checkNormalWin(humanHandCount, computerHandCount);
+  return loseWinMsg;
 };
 
 // function to create a deck
@@ -159,22 +165,37 @@ var dealCard = function (playerHand) {
 var countCurrentHand = function (playerHand) {
   var sum = 0;
   var counter = 0;
+  var numberofAceCards = 0;
   while (counter < playerHand.length) {
     var currCard = playerHand[counter];
     // let ace default value be 11
     if (currCard.name == "Ace") {
+      numberofAceCards = +1;
       sum += 11;
     } else {
       sum += currCard.rank;
     }
     counter = counter + 1;
   }
+  // if hand is greater than 21 and there are ace cards, change ace cards value to 1, one by one
+  if (sum > 21 && numberofAceCards > 0) {
+    var aceCounter = 0;
+    while (aceCounter < numberofAceCards) {
+      sum -= 10;
+      // if sum is less than or equal 21 before all cards are changed from 11 to 1, return current sum
+      // ace and ace combi will be 21
+      if (sum <= 21) {
+        break; // break keyword causes the loop to finish
+      }
+      aceCounter = aceCounter + 1;
+    }
+  }
   return sum;
 };
 
 // function to return human blackjack win
 var humanWinsBlackjack = function () {
-  return `Player has Blackjack and wins, Computer loses!<br><br> 
+  return `You have a Blackjack hand - You win, Computer loses!<br><br> 
   You have drawn the following cards:${currentHand(humanHand)}<br><br>
   Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
   Please refresh to play again.`;
@@ -182,7 +203,7 @@ var humanWinsBlackjack = function () {
 
 // function to return computer win blackjack
 var computerWinsBlackjack = function () {
-  return `Computer has Blackjack and wins, Player loses!<br><br>
+  return `Computer has a Blackjack hand -  You lose, Computer wins!<br><br>
   You have drawn the following cards:${currentHand(humanHand)}<br><br>
   Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
   Please refresh to play again.`;
@@ -190,16 +211,70 @@ var computerWinsBlackjack = function () {
 
 // function to check for non-blackjack wins
 var checkNormalWin = function (player, computer) {
+  console.log(`checkNormalWin`);
+  // player and computer draw
+  if (player == computer) {
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(
+    computerHand
+  )}<br><br> It's a draw!<br><br>
+  Please refresh to play again.`;
+  }
+
+  // player gets 21
+  if (player == 21 && computer != 21) {
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(
+    computerHand
+  )}<br><br> Your hand is 21 - You win, Computer loses!<br><br>
+  Please refresh to play again.`;
+  }
+
+  // computer gets 21
+  if (computer == 21 && player != 21) {
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(
+    computerHand
+  )}<br><br> Computer's hand is 21 - you lose!<br><br>
+  Please refresh to play again.`;
+  }
+
   // assuming both player keep within 21
   if (player < 21 && computer < 21) {
+    console.log(`both less than 21`);
     if (player > computer) {
-      return `Player is closer to 21 and wins, Computer loses!`;
+      return `You have drawn the following cards:${currentHand(
+        humanHand
+      )}<br><br>
+  Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
+    Your hand is closer to 21 - You win, Computer loses! <br><br>
+  Please refresh to play again.`;
     } else {
-      return `Computer is closer to 21 and wins, Player loses!`;
+      return `You have drawn the following cards:${currentHand(
+        humanHand
+      )}<br><br>
+  Computer has drawn the following cards:${currentHand(
+    computerHand
+  )}<br><br>Computer's hand is closer to 21 - You lose, Computer wins!<br><br>
+  Please refresh to play again.`;
     }
   }
-  if (player == 21 && computer != 21) {
-    return `Player gets 21 and wins!`;
+
+  // if computer exceeds 21 and player is below 21
+  if (player < 21 && computer > 21) {
+    console.log(`player less than 21, computer bust`);
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
+    Computer's hand exceeds 21 - You win, Computer loses! <br><br>
+  Please refresh to play again.`;
+  }
+
+  // if computer is below 21 and player exceeds 21
+  if (player > 21 && computer < 21) {
+    return `You have drawn the following cards:${currentHand(humanHand)}<br><br>
+  Computer has drawn the following cards:${currentHand(computerHand)}<br><br>
+    Your hand exceeds 21 - You lose, Computer wins! <br><br>
+  Please refresh to play again.`;
   }
 };
 
