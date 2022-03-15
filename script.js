@@ -58,23 +58,16 @@ var main = function (input) {
   // player chooses to draw another card
   if (input == "hit") {
     dealCard(humanHand);
+    // player draws card
     humanHandCount = countCurrentHand(humanHand);
     console.log(humanHand);
     console.log(humanHandCount);
-    if (countCurrentHand(humanHand) > 21) {
-      return `You have drawn the following cards:${currentHand(
-        humanHand
-      )}<br><br>
-  Your total score is > 21, you lose. <br><br>
-  Please refresh to play again.`;
-    } else {
-      // player did not exceed 21
-      if (countCurrentHand(computerHand) < 17) {
-        dealCard(computerHand);
-        computerHandCount = countCurrentHand(computerHand);
-        console.log(computerHand);
-        console.log(computerHandCount);
-      }
+    // if computer is less than 17, computer draws card
+    if (countCurrentHand(computerHand) < 17) {
+      dealCard(computerHand);
+      computerHandCount = countCurrentHand(computerHand);
+      console.log(computerHand);
+      console.log(computerHandCount);
     }
   }
 
@@ -88,6 +81,7 @@ var main = function (input) {
       console.log(computerHandCount);
     }
   }
+
   computerHandCount = countCurrentHand(computerHand);
   console.log(computerHandCount);
   humanHandCount = countCurrentHand(humanHand);
